@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>めとろのーむ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            position: relative;
+        }
+        #bpmDisplay {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        #scrollArea {
+            width: 300px;
+            height: 100px;
+            border: 2px solid black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 18px;
+            cursor: pointer;
+            user-select: none;
+        }
+        #scrollArea.playing {
+            background-color: #d4f4dd; /* 優しい緑 */
+        }
+        #saveBPMButton {
+            font-size: 20px;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            user-select: none;
+        }
+        #favorites {
+            width: 800px; /* テキストエリアを広く取る */
+            margin-bottom: 20px;
+        }
+        .favorite {
+            display: flex;
+            align-items: center;
+            border: 1px solid black;
+            margin: 5px 0;
+            justify-content: space-between; /* BPMとテキストを分ける */
+            transition: background-color 0.2s;
+        }
+        .favorite > .bpm {
+            width: 100px;
+            border-right: 1px solid black; /* 縦線 */
+            text-align: center;
+            cursor: pointer; /* BPM部分をクリック可能に */
+        }
+        .favorite > .editable {
+            flex-grow: 1;
+            padding-left: 10px;
+            text-align: center;
+            cursor: text;
+            width: 400px; /* テキストボックスの横幅を広げる */
+        }
+        .favorite.highlight {
+            background-color: #d6e4ff; /* 選択状態のハイライト色 */
+        }
+        .favorite.confirmed {
+            background-color: #003366 !important; /* 濃い青 */
+            color: white; /* テキストの色を白に */
+        }
+        /* デリートモード時と通常モードのマウスオーバーのスタイル */
+        .favorite:hover {
+            background-color: #f0f0f0; /* 通常モード時のマウスオーバーの色変更 */
+        }
+        .favorite.deletable:hover {
+            background-color: #ffa0a0; /* デリートモード時に色を濃くする */
+        }
+        .favorite.deletable {
+            cursor: pointer; /* デリートモードでは全体がクリック可能に */
+        }
+        /* デリートモードでテキスト部分も指マークにする */
+        .favorite.deletable .editable {
+            cursor: pointer; /* テキスト部分も指マークに */
+        }
+        #volumeControlContainer {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        #deleteModeBtn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            font-size: 20px;
+            padding: 10px 20px;
+            background-color: red;
+            color: white;
+            cursor: pointer;
+            user-select: none;
+        }
+        .favorite.deletable {
+            background-color: #ffd6d6; /* 優しい赤でデリートモードを示す */
+        }
+    </style>
+</head>
+<body>
+    <div id="volumeControlContainer">
+        <input id="volumeControl" type="range" min="0" max="1" step="0.1" value="0.5">
+        <label for="volumeControl">Vol</label>
+    </div>
+    <div id="bpmDisplay">120 BPM</div>
+    <div id="scrollArea">Click to Play/Pause | Scroll to change BPM</div>
+    <button id="saveBPMButton">Save BPM</button>
+    <div id="favorites"></div>
+    <button id="deleteModeBtn" onclick="toggleDeleteMode()">Delete Mode</button>
+    
+    <!-- deferを追加して、HTMLが読み込まれてからJavaScriptを実行 -->
+    <script src="script.js" defer></script>
+</body>
+</html>
