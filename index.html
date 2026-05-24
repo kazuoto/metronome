@@ -1,125 +1,290 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>めとろのーむ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+JP:wght@400;500&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg: #0f0f0f;
+            --border: #2a2a2a;
+            --accent: #c8f060;
+            --accent-dim: #8aaa30;
+            --text: #e8e8e8;
+            --muted: #666;
+            --playing-bg: #1a2a08;
+            --delete-accent: #ff4444;
+            --confirm-bg: #c8f060;
+            --confirm-text: #0f0f0f;
+            --highlight-bg: #252525;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        button:focus { outline: none; }
+
+        html {
+            background: #000;
+            min-height: 100%;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Noto Sans JP', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            width: 500px;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
             align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            position: relative;
+            justify-content: space-between;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+        .logo {
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.15em;
+            color: var(--muted);
+        }
+        .vol-row { display: flex; align-items: center; gap: 6px; }
+        .vol-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            color: var(--muted);
+            letter-spacing: 0.1em;
+        }
+        #volumeControl {
+            -webkit-appearance: none;
+            width: 80px; height: 3px;
+            background: var(--border);
+            border-radius: 2px;
+            outline: none;
+        }
+        #volumeControl::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+        }
+
+        .bpm-section {
+            padding: 16px 14px 12px;
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
         }
         #bpmDisplay {
-            font-size: 48px;
-            margin-bottom: 20px;
+            font-family: 'DM Mono', monospace;
+            font-size: 64px;
+            font-weight: 500;
+            color: var(--accent);
+            line-height: 1;
+            letter-spacing: -2px;
         }
+        .bpm-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 13px;
+            color: var(--muted);
+            letter-spacing: 0.1em;
+            padding-bottom: 6px;
+        }
+
         #scrollArea {
-            width: 300px;
-            height: 100px;
-            border: 2px solid black;
+            margin: 0 14px;
+            height: 52px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
             display: flex;
-            justify-content: center;
             align-items: center;
-            margin-bottom: 20px;
-            font-size: 18px;
+            justify-content: center;
             cursor: pointer;
             user-select: none;
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            color: var(--muted);
+            transition: all 0.15s;
         }
+        #scrollArea:hover { background: #1a1a1a; }
         #scrollArea.playing {
-            background-color: #d4f4dd; /* 優しい緑 */
+            border-color: var(--accent-dim);
+            background: var(--playing-bg);
+            color: var(--accent);
+        }
+
+        .pulse-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            margin-right: 8px;
+            opacity: 0;
+        }
+        #scrollArea.playing .pulse-dot { opacity: 1; }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            padding: 10px 14px;
         }
         #saveBPMButton {
-            font-size: 20px;
-            padding: 10px 20px;
+            flex: 1;
+            height: 34px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            color: var(--text);
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.1em;
             cursor: pointer;
-            margin-bottom: 20px;
-            user-select: none;
+            transition: all 0.15s;
         }
+        #saveBPMButton:hover { border-color: var(--accent-dim); color: var(--accent); }
+        #deleteModeBtn {
+            height: 34px;
+            width: 84px;
+            flex-shrink: 0;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            color: var(--muted);
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            transition: color 0.15s, border-color 0.15s, background 0.15s;
+            white-space: nowrap;
+        }
+        #deleteModeBtn.active {
+            border-color: var(--delete-accent);
+            color: var(--delete-accent);
+            background: rgba(255,68,68,0.06);
+        }
+
+        .scroll-hint {
+            padding: 0 14px 8px;
+            font-family: 'DM Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            opacity: 0.5;
+        }
+
+        .favorites-header {
+            padding: 6px 14px 4px;
+            font-family: 'DM Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 0.15em;
+            color: var(--muted);
+            border-top: 1px solid var(--border);
+        }
+
         #favorites {
-            width: 800px; /* テキストエリアを広く取る */
-            margin-bottom: 20px;
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 8px 8px;
         }
+        #favorites::-webkit-scrollbar { width: 3px; }
+        #favorites::-webkit-scrollbar-track { background: transparent; }
+        #favorites::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
         .favorite {
             display: flex;
-            align-items: center;
-            border: 1px solid black;
-            margin: 5px 0;
-            justify-content: space-between; /* BPMとテキストを分ける */
-            transition: background-color 0.2s;
+            align-items: stretch;
+            border-radius: 5px;
+            margin: 2px 0;
+            border: 1px solid transparent;
+            transition: all 0.1s;
+            cursor: pointer;
+            overflow: hidden;
         }
+        .favorite:hover { background: var(--highlight-bg); border-color: var(--border); }
+        .favorite.highlight { background: var(--highlight-bg); border-color: var(--border); }
+        .favorite.confirmed { background: var(--confirm-bg) !important; border-color: transparent !important; }
+        .favorite.confirmed .bpm,
+        .favorite.confirmed .editable { color: var(--confirm-text) !important; }
+        .favorite.deletable { background: rgba(255,68,68,0.04); }
+        .favorite.deletable:hover { background: rgba(255,68,68,0.12); border-color: rgba(255,68,68,0.3); }
+        .favorite.deletable .bpm { color: var(--delete-accent) !important; }
+
         .favorite > .bpm {
-            width: 100px;
-            border-right: 1px solid black; /* 縦線 */
-            text-align: center;
-            cursor: pointer; /* BPM部分をクリック可能に */
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            font-weight: 500;
+            width: 42px;
+            min-width: 42px;
+            padding: 7px 8px;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            border-right: 1px solid var(--border);
+            letter-spacing: 0.05em;
         }
         .favorite > .editable {
-            flex-grow: 1;
-            padding-left: 10px;
+            flex: 1;
+            padding: 7px 10px;
+            font-size: 12px;
+            color: var(--text);
+            white-space: normal;
+            word-break: break-all;
+            overflow: hidden;
+            outline: none;
+            align-items: center;
+        }
+        .favorite > .editable[contenteditable="true"] {
+            white-space: normal;
+            background: rgba(200,240,96,0.05);
+        }
+        .empty-hint {
+            padding: 20px 14px;
+            font-family: 'DM Mono', monospace;
+            font-size: 10px;
+            color: var(--muted);
             text-align: center;
-            cursor: text;
-            width: 400px; /* テキストボックスの横幅を広げる */
-        }
-        .favorite.highlight {
-            background-color: #d6e4ff; /* 選択状態のハイライト色 */
-        }
-        .favorite.confirmed {
-            background-color: #003366 !important; /* 濃い青 */
-            color: white; /* テキストの色を白に */
-        }
-        /* デリートモード時と通常モードのマウスオーバーのスタイル */
-        .favorite:hover {
-            background-color: #f0f0f0; /* 通常モード時のマウスオーバーの色変更 */
-        }
-        .favorite.deletable:hover {
-            background-color: #ffa0a0; /* デリートモード時に色を濃くする */
-        }
-        .favorite.deletable {
-            cursor: pointer; /* デリートモードでは全体がクリック可能に */
-        }
-        /* デリートモードでテキスト部分も指マークにする */
-        .favorite.deletable .editable {
-            cursor: pointer; /* テキスト部分も指マークに */
-        }
-        #volumeControlContainer {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-        }
-        #deleteModeBtn {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            font-size: 20px;
-            padding: 10px 20px;
-            background-color: red;
-            color: white;
-            cursor: pointer;
-            user-select: none;
-        }
-        .favorite.deletable {
-            background-color: #ffd6d6; /* 優しい赤でデリートモードを示す */
+            opacity: 0.4;
         }
     </style>
 </head>
 <body>
-    <div id="volumeControlContainer">
-        <input id="volumeControl" type="range" min="0" max="1" step="0.1" value="0.5">
-        <label for="volumeControl">Vol</label>
+    <!-- click.mp3をaudioタグで読み込む（fetchのCORSを回避） -->
+    <audio id="clickAudio" src="click.mp3" preload="auto"></audio>
+
+    <header>
+        <span class="logo">めとろのーむ</span>
+        <div class="vol-row">
+            <span class="vol-label">VOL</span>
+            <input id="volumeControl" type="range" min="0" max="1" step="0.05" value="0.5">
+        </div>
+    </header>
+
+    <div class="bpm-section">
+        <div id="bpmDisplay">120</div>
+        <span class="bpm-label">BPM</span>
     </div>
-    <div id="bpmDisplay">120 BPM</div>
-    <div id="scrollArea">Click to Play/Pause | Scroll to change BPM</div>
-    <button id="saveBPMButton">Save BPM</button>
+
+    <div id="scrollArea">
+        <span class="pulse-dot" id="pulseDot"></span>
+        <span id="playText">CLICK TO PLAY</span>
+    </div>
+
+    <div class="controls">
+        <button id="saveBPMButton">SAVE BPM</button>
+        <button id="deleteModeBtn" onclick="toggleDeleteMode()">DELETE</button>
+    </div>
+
+    <div class="scroll-hint">SCROLL / ↑↓ TO CHANGE BPM &nbsp;·&nbsp; SPACE TO TOGGLE</div>
+
+    <div class="favorites-header">SAVED</div>
     <div id="favorites"></div>
-    <button id="deleteModeBtn" onclick="toggleDeleteMode()">Delete Mode</button>
-    
-    <!-- deferを追加して、HTMLが読み込まれてからJavaScriptを実行 -->
+
     <script src="script.js" defer></script>
 </body>
 </html>
